@@ -3,7 +3,7 @@ from .models import Payment , PaymentLog
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('amount', 'status', 'created_at')
+    list_display = ('amount', 'status', 'created_at','order_id')
 
 @admin.register(PaymentLog)
 class PaymentLogAdmin(admin.ModelAdmin):

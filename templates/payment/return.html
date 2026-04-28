@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>To‘lov holati</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 350px;
+        }
+
+        .status {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        .success { color: green; }
+        .pending { color: orange; }
+        .failed { color: red; }
+        .canceled { color: gray; }
+
+        .loader {
+            border: 4px solid #eee;
+            border-top: 4px solid orange;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 15px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    {% if not payment %}
+        <div class="status failed">To‘lov topilmadi </div>
+
+    {% else %}
+
+        <div id="statusBlock">
+
+            {% if payment.status == "success" %}
+                <div class="status success">To‘lov muvaffaqiyatli </div>
+
+            {% elif payment.status == "pending" %}
+                <div class="status pending">To‘lov tekshirilmoqda</div>
+                <div class="loader"></div>
+
+            {% elif payment.status == "failed" %}
+                <div class="status failed">To‘lov amalga oshmadi </div>
+
+            {% elif payment.status == "canceled" %}
+                <div class="status canceled">To‘lov bekor qilindi ️</div>
+            {% endif %}
+
+        </div>
+
+        <div>
+            <p><b>Summa:</b> {{ payment.amount }} so'm</p>
+            <p><b>Order ID:</b> {{ payment.order_id }}</p>
+        </div>
+
+    {% endif %}
+
+    <button class="btn" onclick="window.location.href='/'">
+        Bosh sahifaga qaytish
+    </button>
+
+</div>
+
+<script>
+    const status = "{{ payment.status|default:'' }}";
+    const orderId = "{{ payment.order_id|default:'' }}";
+
+    if (status === "pending") {
+        setInterval(async () => {
+            const res = await fetch(`/return/?order_id=${orderId}`);
+            const data = await res.text();
+
+            location.reload();
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>

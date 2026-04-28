@@ -1,6 +1,8 @@
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 import os
+from dotenv import load_dotenv
+load_dotenv()
 SECRET_KEY = 'django-insecure-_1-g%8f$xjt7k@uzfn-c8!%g8qp)hzibux5%bf*p2_h8wqfxf3'
 
 DEBUG = True
@@ -34,7 +36,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,3 +82,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+TSPAY_WEBHOOK_SECRET = os.environ.get('TSPAY_WEBHOOK_SECRET')
+MERCHANT_ID = os.environ.get('MERCHANT_ID')
