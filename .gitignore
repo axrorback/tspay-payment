@@ -9,4 +9,4 @@ wheels/
 .idea
 **/migrations/**
 !*/migrations/__init__.py
-.gitignore
+db.sqlite3
