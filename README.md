@@ -277,30 +277,11 @@ if not verify_tspay_signature(request, params):
 
 ---
 
-# 💰 AMOUNT RULE (IMPORTANT)
-
-## TSPay uses TIYIN
-
-| Som  | Tiyin  |
-| ---- | ------ |
-| 5000 | 500000 |
-
----
-
-## Conversion rule
-
-```python
-def to_tiyin(amount):
-    return amount * 100
-```
-
----
-
 # 🧪 SANDBOX TESTING
 
 ## Steps
 
-1. Use ngrok
+1. Use ngrok or any other tunneling services
 
 ```
 ngrok http 8000
