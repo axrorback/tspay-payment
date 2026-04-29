@@ -141,18 +141,18 @@ def tspay_webhook(request):
             data=body
         )
 
-        if payment.callback_url:
-            try:
-                requests.post(payment.callback_url, json={
-                    "status": "success",
-                    "order_id": payment.order_id,
-                    "amount": payment.amount,
-                    "transaction_id": payment.transaction_id,
-                    "user_id": payment.user_id,
-                }, timeout=5)
-            except Exception as e:
-                print("Callback error:", e)
-
-        return JsonResponse({"success": True})
+        # if payment.callback_url:
+        #     try:
+        #         requests.post(payment.callback_url, json={
+        #             "status": "success",
+        #             "order_id": payment.order_id,
+        #             "amount": payment.amount,
+        #             "transaction_id": payment.transaction_id,
+        #             "user_id": payment.user_id,
+        #         }, timeout=5)
+        #     except Exception as e:
+        #         print("Callback error:", e)
+        #
+        # return JsonResponse({"success": True})
 
     return JsonResponse({"error": "Unknown method"}, status=400)
