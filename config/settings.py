@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 SECRET_KEY = 'django-insecure-_1-g%8f$xjt7k@uzfn-c8!%g8qp)hzibux5%bf*p2_h8wqfxf3'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
