@@ -125,10 +125,23 @@ def tspay_webhook(request):
 
     if method == "performTransaction":
         if not payment:
-            return JsonResponse({"success": False, "reason": "Not found"})
+            return JsonResponse({
+                "success": False,
+                "reason": "Not found"
+            })
 
         if payment.status == "success":
-            return JsonResponse({"success": True, "message": "Already processed"})
+            return JsonResponse({
+                "success": True,
+                "message": "Already processed"
+            })
+
+        req_amount = int(params.get("amount", 0))
+        if payment.amount != req_amount:
+            return JsonResponse({
+                "success": False,
+                "reason": "Amount mismatch"
+            })
 
         payment.status = "success"
         payment.cheque_id = params.get("cheque_id")
@@ -141,18 +154,16 @@ def tspay_webhook(request):
             data=body
         )
 
-        # if payment.callback_url:
-        #     try:
-        #         requests.post(payment.callback_url, json={
-        #             "status": "success",
-        #             "order_id": payment.order_id,
-        #             "amount": payment.amount,
-        #             "transaction_id": payment.transaction_id,
-        #             "user_id": payment.user_id,
-        #         }, timeout=5)
-        #     except Exception as e:
-        #         print("Callback error:", e)
-        #
-        # return JsonResponse({"success": True})
+        if payment.callback_url:
+            try:
+                requests.post(payment.callback_url, json={
+                    "status": "success",
+                    "order_id": payment.order_id,
+                    "amount": payment.amount,
+                    "transaction_id": payment.transaction_id,
+                    "user_id": payment.user_id,
+                }, timeout=5)
+            except Exception as e:
+                print("Callback error:", e)
 
-    return JsonResponse({"error": "Unknown method"}, status=400)
+        return JsonResponse({"success": True})
