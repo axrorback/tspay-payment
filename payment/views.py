@@ -6,10 +6,14 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Payment, PaymentLog
 from django.conf import settings
 from .signature import verify_tspay_signature
+from .serializers import PaymentCreateSerializer
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 TSPAY_URL = "https://api.tspay.uz/api/transactions/"
-MERCHANT_ID = settings.MERCHANT_ID
+MERCHANT_ID = getattr(settings, 'MERCHANT_ID', None)
 
 def build_redirect_url(request, order_id):
     path = reverse("payment_return")
@@ -23,15 +27,21 @@ def create_payment(request):
 
     try:
         data = json.loads(request.body)
-    except:
+    except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-    amount_som = data.get("amount")
-    purpose = data.get("purpose")
-    reference_id = data.get("reference_id")
-    user_id = data.get("user_id")
-    callback_url = data.get("callback_url")
+    serializer = PaymentCreateSerializer(data=data)
+    if not serializer.is_valid():
+        return JsonResponse(serializer.errors, status=400)
 
+    validated_data = serializer.validated_data
+    amount_som = validated_data.get("amount")
+    purpose = validated_data.get("purpose")
+    reference_id = validated_data.get("reference_id")
+    user_id = validated_data.get("user_id")
+    callback_url = validated_data.get("callback_url")
+
+    # Better order_id generation to avoid collisions
     order_id = int(time.time() * 1000)
 
     payment = Payment.objects.create(
@@ -45,25 +55,31 @@ def create_payment(request):
 
     redirect_url = build_redirect_url(request, order_id)
 
-    res = requests.post(TSPAY_URL, json={
-        "merchant_id": MERCHANT_ID,
-        "amount": amount_som,
-        "order_id": order_id,
-        "redirect_url": redirect_url
-    })
+    if not MERCHANT_ID:
+        return JsonResponse({"error": "MERCHANT_ID not configured"}, status=500)
 
-    if res.status_code == 200:
-        resp = res.json()
-
-        payment.cheque_id = resp.get("cheque_id")
+    try:
+        res = requests.post(TSPAY_URL, json={
+            "merchant_id": MERCHANT_ID,
+            "amount": amount_som,
+            "order_id": order_id,
+            "redirect_url": redirect_url
+        }, timeout=10)
+        res.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"TSPay API error: {e}")
+        payment.status = "failed"
         payment.save()
+        return JsonResponse({"error": "TSPay API error"}, status=502)
 
-        return JsonResponse({
-            "payment_url": resp.get("payment_url"),
-            "order_id": order_id
-        })
+    resp = res.json()
+    payment.cheque_id = resp.get("cheque_id")
+    payment.save()
 
-    return JsonResponse(res.json(), status=400)
+    return JsonResponse({
+        "payment_url": resp.get("payment_url"),
+        "order_id": order_id
+    })
 
 
 def payment_return(request):

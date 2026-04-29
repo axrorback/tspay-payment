@@ -18,7 +18,7 @@ class Payment(models.Model):
     reference_id = models.CharField(max_length=100)
     user_id = models.CharField(max_length=100, null=True, blank=True)
     order_id = models.BigIntegerField(unique=True)
-    cheque_id = models.CharField(null=True, blank=True)
+    cheque_id = models.CharField(max_length=255, null=True, blank=True)
     provider = models.CharField(max_length=20, default="tspay")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
     callback_url = models.URLField(null=True, blank=True)
